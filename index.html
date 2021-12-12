@@ -5,10 +5,25 @@
     <meta charset="utf-8">
     <title>Image Carousel</title>
     <link rel="stylesheet" href="./styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
   </head>
 
   <body>
-
+    <div class="carousel-container">
+      <div class="carousel-frame">
+        <img src="./images/image-1.jpg" class="carousel-image active" alt="image-1">
+        <img src="./images/image-2.jpg" class="carousel-image" alt="image-2">
+        <img src="./images/image-3.jpg" class="carousel-image" alt="image-3">
+        <div id="next">
+          <i class="fas fa-arrow-right"></i>
+        </div>
+        <div id="previous">
+          <i class="fas fa-arrow-left"></i>
+        </div>
+      </div>
+      <div class="image-dot-container">
+      </div>
+    </div>
     <script src="./scripts/main.js"></script>
   </body>
 </html>
