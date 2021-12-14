@@ -56,6 +56,7 @@ function afterNextSlideCenterEnd() {
 
   nextBtn.addEventListener('click', handleClickNext);
   playSlideShow();
+  updateDots();
 }
 
 function afterPreviousSlideCenterEnd() {
@@ -76,6 +77,7 @@ function afterPreviousSlideCenterEnd() {
 
   previousBtn.addEventListener('click', handleClickPrevious);
   playSlideShow();
+  updateDots();
 }
 
 function afterSlideLeftStart() {
@@ -181,8 +183,33 @@ function displayDots() {
 
   imageArr.forEach((image) => {
     const dot = createDot();
-    dot.setAttribute("id",image.getAttribute('src'));
+    dot.setAttribute("id", image.getAttribute('src'));
+    if (image.classList.contains('active')) {
+      dot.classList.toggle('far');
+      dot.classList.toggle('fas');
+    }
     imageDotContainer.appendChild(dot);
+  });
+}
+
+function updateDots() {
+  const imageArr = [...images];
+  const dots = document.querySelectorAll('.fa-circle');
+
+  imageArr.forEach((image) => {
+    if (image.classList.contains('active')) {
+      dots.forEach((dot) => {
+        if (dot.getAttribute('id') === image.getAttribute('src')) {
+          dot.classList = '';
+          dot.classList.add('fa-circle');
+          dot.classList.add('fas');
+        } else {
+          dot.classList = '';
+          dot.classList.add('fa-circle');
+          dot.classList.add('far');
+        }
+      });
+    }
   });
 }
 
