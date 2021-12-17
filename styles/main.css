@@ -1,6 +1,7 @@
 .carousel-container {
   max-width: 1200px;
   margin: 0 auto;
+  padding-top: 50px;
 }
 
 .image-dot-container {
@@ -101,5 +102,6 @@
   font-size: 12px;
   font-weight: bold;
   padding: 5px;
+  cursor: pointer;
 }
 

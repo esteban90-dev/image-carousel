@@ -3,6 +3,7 @@ const previousBtn = document.querySelector('#previous');
 const images = document.querySelectorAll('.carousel-image');
 const imageDotContainer = document.querySelector('.image-dot-container');
 let intervalId;
+let imageDirection;
 
 function getNextImage() {
   // return the image after the current image
@@ -40,7 +41,7 @@ function unhideImages() {
 
 function afterNextSlideCenterEnd() {
   const currentImage = document.querySelector('.active');
-  const nextImage = getNextImage();
+  const nextImage = document.querySelector('#requested');
 
   currentImage.classList.toggle('active');
   currentImage.classList.toggle('slide-left');
@@ -51,52 +52,68 @@ function afterNextSlideCenterEnd() {
   // unhide all images 
   unhideImages();
 
+  // remove transition listeners
   currentImage.removeEventListener('transitionstart',afterSlideLeftStart);
   nextImage.removeEventListener('transitionend',afterNextSlideCenterEnd);
 
-  nextBtn.addEventListener('click', handleClickNext);
+  // restore button listeners
+  enableListeners();
+
+  // clear the requested id
+  nextImage.setAttribute('id','');
+
+  // restart the slide show
   playSlideShow();
+
   updateDots();
 }
 
 function afterPreviousSlideCenterEnd() {
   const currentImage = document.querySelector('.active');
-  const previousImage = getPreviousImage();
+  const nextImage = document.querySelector('#requested');
 
   currentImage.classList.toggle('active');
   currentImage.classList.toggle('slide-right');
-  previousImage.classList.toggle('active');
-  previousImage.classList.toggle('slide-center');
-  previousImage.classList.toggle('left');
+  nextImage.classList.toggle('active');
+  nextImage.classList.toggle('slide-center');
+  nextImage.classList.toggle('left');
 
   // unhide all images 
   unhideImages();
 
+  // remove transition listeners
   currentImage.removeEventListener('transitionstart', afterSlideRightStart);
-  previousImage.removeEventListener('transitionend', afterPreviousSlideCenterEnd);
+  nextImage.removeEventListener('transitionend', afterPreviousSlideCenterEnd);
 
-  previousBtn.addEventListener('click', handleClickPrevious);
+  // restore button listeners
+  enableListeners();
+
+  // clear the requested id
+  nextImage.setAttribute('id','');
+
+  // restart the slide show
   playSlideShow();
+
   updateDots();
 }
 
 function afterSlideLeftStart() {
-  const nextImage = getNextImage();
+  const nextImage = document.querySelector('#requested');
 
   nextImage.addEventListener('transitionend', afterNextSlideCenterEnd);
   nextImage.classList.toggle('slide-center');
 }
 
 function afterSlideRightStart() {
-  const previousImage = getPreviousImage();
+  const nextImage = document.querySelector('#requested');
 
-  previousImage.addEventListener('transitionend', afterPreviousSlideCenterEnd);
-  previousImage.classList.toggle('slide-center');
+  nextImage.addEventListener('transitionend', afterPreviousSlideCenterEnd);
+  nextImage.classList.toggle('slide-center');
 }
 
 function hideOtherImagesNext() {
   const currentImage = document.querySelector('.active');
-  const nextImage = getNextImage();
+  const nextImage = document.querySelector('#requested');
   const imageArr = [...images];
 
   imageArr.forEach((image) => {
@@ -106,58 +123,94 @@ function hideOtherImagesNext() {
   });
 }
 
-function hideOtherImagesPrevious() {
-  const currentImage = document.querySelector('.active');
-  const previousImage = getPreviousImage();
-  const imageArr = [...images];
-
-  imageArr.forEach((image) => {
-    if (!((image === currentImage) || (image === previousImage))) {
-      image.classList.toggle('hide');
-    }
-  });
-}
-
 function handleClickNext() {
   const currentImage = document.querySelector('.active');
+
+  // remove button listeners until all transitions are complete
+  disableListeners();
+
+  // set direction to forward
+  imageDirection = 'forward';
+
+  // set the requested image
   const nextImage = getNextImage();
+  nextImage.setAttribute('id','requested');
+
+  if (currentImage !== nextImage) {
+    advanceImage();
+  }
+}
+
+function getImageBySrc(src) {
+  const imageArr = [...images];
+  let result;
+
+  imageArr.forEach((image) => {
+    if (image.getAttribute('src') === src) {
+      result = image;
+    }
+  });
+  return result;
+}
+
+function handleDotClick(event) {
+  const imageSrc = event.target.getAttribute('id');
+  const nextImage = getImageBySrc(imageSrc);
+  const currentImage = document.querySelector('.active');
+
+  // remove button listeners until all transitions are complete
+  disableListeners();
+
+  // set the direction
+  imageDirection = calculateDirection(currentImage, nextImage);
+
+  // set the requested image
+  nextImage.setAttribute('id','requested');
+
+  if (currentImage !== nextImage) {
+    advanceImage();
+  }
+}
+
+function advanceImage() {
+  const currentImage = document.querySelector('.active');
+  const nextImage = document.querySelector('#requested');
 
   // stop the slideshow from playing automatically (will restart when transition is complete)
   stopSlideShow();
 
-  // remove next button listener until all transitions are complete
-  nextBtn.removeEventListener('click', handleClickNext);
+  if (imageDirection === 'forward') {
+    nextImage.classList.toggle('right');
+    currentImage.addEventListener('transitionstart', afterSlideLeftStart);
+    currentImage.classList.toggle('slide-left');
+  }
 
-  // place the next image on the right
-  nextImage.classList.toggle('right');
+  if (imageDirection === 'reverse') {
+    nextImage.classList.toggle('left');
+    currentImage.addEventListener('transitionstart', afterSlideRightStart);
+    currentImage.classList.toggle('slide-right');
+  }
 
   // hide any images that are not current or next
   hideOtherImagesNext();
-
-  // slide the current image to the left
-  currentImage.addEventListener('transitionstart', afterSlideLeftStart);
-  currentImage.classList.toggle('slide-left');
 }
 
 function handleClickPrevious() {
   const currentImage = document.querySelector('.active');
-  const previousImage = getPreviousImage();
 
-  // stop the slideshow from playing automatically (will restart when transition is complete)
-  stopSlideShow();
+  // remove button listeners until all transitions are complete
+  disableListeners();
 
-  // remove previous button listener until all transitions are complete
-  previousBtn.removeEventListener('click', handleClickPrevious);
+  // set direction to reverse
+  imageDirection = 'reverse';
 
-  // place the previous image on the left
-  previousImage.classList.toggle('left');
+  // set the requested image
+  const nextImage = getPreviousImage();
+  nextImage.setAttribute('id','requested');
 
-  // hide any images that are not current or previous
-  hideOtherImagesPrevious();
-
-  // slide the current image to the right
-  currentImage.addEventListener('transitionstart', afterSlideRightStart);
-  currentImage.classList.toggle('slide-right');
+  if (currentImage !== nextImage) {
+    advanceImage();
+  }
 }
 
 function playSlideShow() {
@@ -189,6 +242,7 @@ function displayDots() {
       dot.classList.toggle('fas');
     }
     imageDotContainer.appendChild(dot);
+    dot.addEventListener('click',handleDotClick);
   });
 }
 
@@ -210,6 +264,45 @@ function updateDots() {
         }
       });
     }
+  });
+}
+
+function calculateDirection(currentImage, nextImage) {
+  const imageArr = [...images];
+  const currentImageIndex = imageArr.indexOf(currentImage);
+  const nextImageIndex = imageArr.indexOf(nextImage);
+
+  // return forward if current has lesser index than next
+  if ((currentImageIndex - nextImageIndex) < 0) {
+    return 'forward';
+  }
+
+  // return reverse if current has greater index than next
+  if ((currentImageIndex - nextImageIndex) > 0) {
+    return 'reverse';
+  }
+
+  return null;
+}
+
+function disableListeners() {
+  const dots = document.querySelectorAll('.fa-circle');
+
+  nextBtn.removeEventListener('click', handleClickNext);
+  previousBtn.removeEventListener('click', handleClickPrevious);
+  dots.forEach((dot) => {
+    dot.removeEventListener('click',handleDotClick);
+  });
+}
+
+function enableListeners() {
+  const dots = document.querySelectorAll('.fa-circle');
+
+  previousBtn.addEventListener('click', handleClickPrevious);
+  nextBtn.addEventListener('click', handleClickNext);
+
+  dots.forEach((dot) => {
+    dot.addEventListener('click',handleDotClick);
   });
 }
 
